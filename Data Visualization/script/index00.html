@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<head>
+    <title>Moving Bubble Tutorial</title>
+    <link rel="stylesheet" href="style/style.css" type="text/css" media="screen" />
+	<meta charset="utf-8">
+</head>
+
+<body>
+	
+<div id="main-wrapper">
+	<div id="chart"></div>
+</div><!-- @end #main-wrapper -->
+
+
+<script src="js/d3-3-5-5.min.js"></script>
+
+<script>
+    var margin = { top: 16, right: 0, bottom: 0, left: 0 },
+    width = 950 - margin.left - margin.right,
+    height = 700 - margin.top - margin.bottom;
+
+    var svg = d3.select("#chart").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+</script>
+
+</body>

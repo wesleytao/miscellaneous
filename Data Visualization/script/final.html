@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<head>
+    <title>Fire response classification</title>
+    <link rel="stylesheet" href="style/style.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="data.json"></script>
+	<meta charset="utf-8">
+</head>
+
+<body>
+    
+<div id="main-wrapper">
+	<div id="chart"></div>
+</div><!-- @end #main-wrapper -->
+<script src="http://d3js.org/d3.v3.min.js"></script>
+    <!--<script src="d3-3-5-5.min.js"></script>-->
+
+<script>
+<!-- set up the page background-->
+var margin = {top: 16, right: 0, bottom: 0, left: 0},
+    width = 950 - margin.left - margin.right,
+    height = 700 - margin.top - margin.bottom;
+var mydata = [[0.2247191, 0.25842697, 0.48455056, 0.91292135, 0.95786517,
+        1.],
+       [0.2184265, 0.2505176, 0.47101449, 0.91614907, 0.97101449,
+        1.],
+       [0.14069457, 0.17008014, 0.41852182, 0.92609083, 0.96883348,
+        1.],
+       [0.15475113, 0.1800905, 0.39095023, 0.92126697, 0.97375566,
+        1.],
+       [0.15099458, 0.18264014, 0.38155515, 0.92857143, 0.97468354,
+        1.],
+       [0.17592593, 0.21399177, 0.41872428, 0.9382716, 0.97942387,
+        1.],
+       [0.18086225, 0.20715037, 0.43112513, 0.93796004, 0.98002103,
+        1.],
+       [0.19331243, 0.23301985, 0.42737722, 0.95506792, 0.97805643,
+        1.],
+       [0.15384615, 0.19182084, 0.39240506, 0.91236611, 0.97955209,
+        1.],
+       [0.12579618, 0.16401274, 0.35748408, 0.9227707, 0.97770701,
+        1.],
+       [0.11522965, 0.1385979, 0.38275584, 0.92667204, 0.97824335,
+        1.],
+       [0.11831727, 0.15074496, 0.38825592, 0.94390885, 0.98334794,
+        1.],
+       [0.14612676, 0.18397887, 0.46919014, 0.93397887, 0.98151408,
+        1.],
+       [0.2184265, 0.2505176, 0.47101449, 0.91614907, 0.97101449,
+        1.],
+       [0.14069457, 0.17008014, 0.41852182, 0.92609083, 0.96883348,
+        1.],
+       [0.15475113, 0.1800905, 0.39095023, 0.92126697, 0.97375566,
+        1.],
+       [0.15099458, 0.18264014, 0.38155515, 0.92857143, 0.97468354,
+        1.],
+       [0.17592593, 0.21399177, 0.41872428, 0.9382716, 0.97942387,
+        1.],
+       [0.18086225, 0.20715037, 0.43112513, 0.93796004, 0.98002103,
+        1.],
+       [0.19331243, 0.23301985, 0.42737722, 0.95506792, 0.97805643,
+        1.],
+       [0.15384615, 0.19182084, 0.39240506, 0.91236611, 0.97955209,
+        1.],
+       [0.12579618, 0.16401274, 0.35748408, 0.9227707, 0.97770701,
+        1.],
+       [0.11522965, 0.1385979, 0.38275584, 0.92667204, 0.97824335,
+        1.],
+       [0.11831727, 0.15074496, 0.38825592, 0.94390885, 0.98334794,
+        1.],
+       [0.13981481, 0.17314815, 0.43611111, 0.92962963, 0.9712963,
+        1.],
+       [0.11111111, 0.13333333, 0.42222222, 0.93333333, 0.96666667,
+        1.]]
+var date = ['Jan-13',
+ 'Feb-13',
+ 'Mar-13',
+ 'Apr-13',
+ 'May-13',
+ 'Jun-13',
+ 'Jul-13',
+ 'Aug-13',
+ 'Sep-13',
+ 'Oct-13',
+ 'Nov-13',
+ 'Dec-13',
+ 'Jan-14',
+ 'Feb-14',
+ 'Mar-14',
+ 'Apr-14',
+ 'May-14',
+ 'Jun-14',
+ 'Jul-14',
+ 'Aug-14',
+ 'Sep-14',
+ 'Oct-14',
+ 'Nov-14',
+ 'Dec-14',
+ 'Jan-15',
+ 'Feb-15']
+
+//nodes color
+var node_radius = 3,
+    padding = 1,
+    cluster_padding = 10,
+    num_nodes = 600;
+
+var svg = d3.select("#chart").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var timetext = d3.select("svg")
+    .append("text")
+    .text("Month")
+    .attr("x", 380)
+    .attr("y", 390)
+    .attr("font-family", "Times New Roman")
+    .attr("fill", "black")
+    .attr("font-size", "60px");
+
+//right
+d3.select("svg")
+    .append("text")
+    .text("Auto Mobile Fire")
+    .attr("x", 670)
+    .attr("y", 400)
+    .attr("font-family", "Times New Roman")
+    .attr("fill", "black")
+    .attr("font-size", "20px");
+
+// down_right
+d3.select("svg")
+    .append("text")
+    .text("Hospital Fire")
+    .attr("x", 520)
+    .attr("y", 620)
+    .attr("font-family", "Times New Roman")
+    .attr("fill", "black")
+    .attr("font-size", "20px");
+
+//down_left
+d3.select("svg")
+    .append("text")
+    .text("Other Commercial Building")
+    .attr("x", 250)
+    .attr("y", 620)
+    .attr("font-family", "Times New Roman")
+    .attr("fill", "black")
+    .attr("font-size", "20px");
+
+// left
+d3.select("svg")
+    .append("text")
+    .text("Private Dwelling Fire")
+    .attr("x", 30)
+    .attr("y", 400)
+    .attr("font-family", "Times New Roman")
+    .attr("fill", "black")
+    .attr("font-size", "20px");
+
+
+// up_left
+d3.select("svg")
+    .append("text")
+    .text("School Fire")
+    .attr("x", 250)
+    .attr("y", 120)
+    .attr("font-family", "Times New Roman")
+    .attr("fill", "black")
+    .attr("font-size", "20px");
+
+//up_right
+d3.select("svg")
+    .append("text")
+    .text("Store Fire")
+    .attr("x", 550)
+    .attr("y", 120)
+    .attr("font-family", "Times New Roman")
+    .attr("fill", "black")
+    .attr("font-size", "20px");
+
+//Title
+d3.select("svg")
+.append("text")
+.text("911 Fire Response Classification")
+.attr("x", 0)
+.attr("y", 40)
+.attr("font-family", "Times New Roman")
+.attr("fill", "black")
+.attr("font-size", "40px");
+
+// Foci
+var foci = {
+    "Center": { x: 450, y: 350, color: "#ffffcc" },
+    "Left": { x: 250, y: 350, color: "#cc5efa" },//left
+  "Right": { x: 650, y: 350, color: "#23cdc7" },//right
+  "DownLeft": { x: 350, y: 523, color: "#eb494f" },//down_left
+ "DownRight": { x: 550, y: 523, color: "#cc6600" }, //Down_right
+ "UpLeft": { x: 350, y: 177, color: "#660033" },//up_left
+ "UpRight": { x: 550, y: 177, color: "#eb494f" }//up_right
+};
+
+// Create node objects
+var nodes = d3.range(0, num_nodes).map(function(o, i) {
+	return {
+		id: "node" + i,
+		x: foci.Center.x + Math.random(),
+		y: foci.Center.y + Math.random(),
+		radius: node_radius,
+		choice: "Center",
+	}
+});
+
+// Force-directed layout
+var force = d3.layout.force()
+	.nodes(nodes)
+	.size([width, height])
+	.gravity(0)
+	.charge(0)
+	.friction(.91)
+	.on("tick", tick)
+	.start();
+    
+// Draw circle for each node.
+var circle = svg.selectAll("circle")
+	.data(nodes)
+  .enter().append("circle")
+	.attr("id", function(d) { return d.id; })
+	.attr("class", "node")
+	.style("fill", function(d) { return foci[d.choice].color; });    
+
+// For smoother initial transition to settling spots.
+circle.transition()
+	.duration(900)
+	.delay(function(d,i) { return i * 5; })
+	.attrTween("r", function(d) {
+		var i = d3.interpolate(0, d.radius);
+		return function(t) { return d.radius = i(t); };
+	});
+
+
+// Run function periodically to make things move.
+
+
+function updatenode(acum1, acum2, acum3, acum4, acum5, acum6,date) {
+    if (!((acum1 <= acum2) && (acum2 <= acum3) && (acum3 <= acum4) && (acum4 <= acum5) && (acum5 <= acum6))) {
+        throw "Parameter is not in an ascending order";
+    }
+
+
+    for (var i = 0; i < nodes.length ; i++) {
+
+        if (0 <= i && i < nodes.length * acum1) {
+            nodes[i].cx = foci["Right"].x;
+            nodes[i].cy = foci["Right"].y;
+            nodes[i].choice = "Right";
+        }
+        else if ( i < nodes.length * acum2) {
+            nodes[i].cx = foci["DownRight"].x;
+            nodes[i].cy = foci["DownRight"].y;
+            nodes[i].choice = "DownRight";
+        }
+        else if (i < nodes.length * acum3) {
+            nodes[i].cx = foci["DownLeft"].x;
+            nodes[i].cy = foci["DownLeft"].y;
+            nodes[i].choice = "DownLeft";
+        }
+        else if (i < nodes.length * acum4) {
+            nodes[i].cx = foci["Left"].x;
+            nodes[i].cy = foci["Left"].y;
+            nodes[i].choice = "Left";
+        }
+        else if ( i < nodes.length * acum5) {
+            nodes[i].cx = foci["UpLeft"].x;
+            nodes[i].cy = foci["UpLeft"].y;
+            nodes[i].choice = "UpLeft";
+        }
+        else {
+            nodes[i].cx = foci["UpRight"].x;
+            nodes[i].cy = foci["UpRight"].y;
+            nodes[i].choice = "UpRight";
+        }
+    }
+    timetext.text(date)
+    // we also have to update the date
+    
+}
+
+
+
+
+function counter() {
+    var i = 0;
+    // This block will be executed 100 times.
+    setInterval(function () {
+        if (i == mydata.length) clearInterval(this);
+        else {
+            updatenode(mydata[i][0], mydata[i][1], mydata[i][2], mydata[i][3], mydata[i][4], mydata[i][5],date[i]);
+         
+            force.resume();
+            i++;
+        }
+    }, 1500);//change your time here 
+}
+counter();
+
+
+
+
+function tick(e) {
+  circle
+	.each(gravity(.051 * e.alpha))
+  	.each(collide(.5))
+  	.style("fill", function(d) { return foci[d.choice].color; })
+    .attr("cx", function(d) { return d.x; })
+    .attr("cy", function(d) { return d.y; });
+}
+
+
+// Move nodes toward cluster focus.
+function gravity(alpha) {
+  return function(d) {
+    d.y += (foci[d.choice].y - d.y) * alpha;
+    d.x += (foci[d.choice].x - d.x) * alpha;
+  };
+}
+
+
+
+// Resolve collisions between nodes.
+function collide(alpha) {
+  var quadtree = d3.geom.quadtree(nodes);
+  return function(d) {
+	  var r = d.radius + node_radius + Math.max(padding, cluster_padding),
+        nx1 = d.x - r,
+        nx2 = d.x + r,
+        ny1 = d.y - r,
+        ny2 = d.y + r;
+    quadtree.visit(function(quad, x1, y1, x2, y2) {
+      if (quad.point && (quad.point !== d)) {
+        var x = d.x - quad.point.x,
+            y = d.y - quad.point.y,
+            l = Math.sqrt(x * x + y * y),
+            r = d.radius + quad.point.radius + (d.choice === quad.point.choice ? padding : cluster_padding);
+        if (l < r) {
+          l = (l - r) / l * alpha;
+          d.x -= x *= l;
+          d.y -= y *= l;
+          quad.point.x += x;
+          quad.point.y += y;
+        }
+      }
+      return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
+    });
+  };
+}    
+
+
+</script>
+
+</body>

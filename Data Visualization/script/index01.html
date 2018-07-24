@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Moving Bubble Tutorial</title>
+    <link rel="stylesheet" href="style/style.css" type="text/css" media="screen" />
+	<meta charset="utf-8">
+</head>
+
+<body>
+	
+<div id="main-wrapper">
+	<div id="chart"></div>
+</div><!-- @end #main-wrapper -->
+
+
+<script src="js/d3-3-5-5.min.js"></script>
+
+<script>
+var margin = {top: 16, right: 0, bottom: 0, left: 0},
+    width = 950 - margin.left - margin.right,
+    height = 700 - margin.top - margin.bottom;
+
+var node_radius = 5,
+    padding = 1,
+    cluster_padding = 10,
+    num_nodes = 200;
+
+var svg = d3.select("#chart").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+// Foci
+var foci = {
+	"toppos": { x: 475, y: 150, color: "#cc5efa" },
+	"leftpos": { x: 225, y: 300, color: "#29bf10" }, 
+	"rightpos": { x: 725, y: 300, color: "#23cdc7" },
+    "bottompos": { x: 475, y: 450, color: "#eb494f" },
+};
+
+// Create node objects
+var nodes = d3.range(0, num_nodes).map(function(o, i) {
+	return {
+		id: "node" + i,
+		x: foci.toppos.x + Math.random(),
+		y: foci.toppos.y + Math.random(),
+		radius: node_radius,
+		choice: "toppos",
+	}
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<head>
+    <title>Moving Bubble Tutorial</title>
+    <link rel="stylesheet" href="style/style.css" type="text/css" media="screen" />
+    <script type="text/javascript" src="data.json"></script>
+	<meta charset="utf-8">
+</head>
+
+<body>
+    
+<div id="main-wrapper">
+	<div id="chart"></div>
+</div><!-- @end #main-wrapper -->
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
+
+
+<script>
+
+var margin = {top: 16, right: 0, bottom: 0, left: 0},
+    width = 950 - margin.left - margin.right,
+    height = 700 - margin.top - margin.bottom;
+
+var node_radius = 3,
+    padding = 1,
+    cluster_padding = 10,
+    num_nodes = 600;
+
+var svg = d3.select("#chart").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+d3.select("svg")
+    .append("text")
+    .text("Fire FalseAlarm")
+    .attr("x", 120)
+    .attr("y", 400)
+    .attr("font-family", "Times New Roman")
+    .attr("fill", "black")
+    .attr("font-size", "20px");
+
+d3.select("svg")
+    .append("text")
+    .text("Medical FalseAlarm")
+    .attr("x", 670)
+    .attr("y", 400)
+    .attr("font-family", "Times New Roman")
+    .attr("fill", "black")
+    .attr("font-size", "20px");
+
+d3.select("svg")
+    .append("text")
+    .text("NonStructuralFires")
+    .attr("x", 250)
+    .attr("y", 620)
+    .attr("font-family", "Times New Roman")
+    .attr("fill", "black")
+    .attr("font-size", "20px");
+
+
+d3.select("svg")
+    .append("text")
+    .text("Medical Emergencies")
+    .attr("x", 490)
+    .attr("y", 620)
+    .attr("font-family", "Times New Roman")
+    .attr("fill", "black")
+    .attr("font-size", "20px");
+
+d3.select("svg")
+    .append("text")
+    .text("StructuralFires")
+    .attr("x", 250)
+    .attr("y", 120)
+    .attr("font-family", "Times New Roman")
+    .attr("fill", "black")
+    .attr("font-size", "20px");
+
+d3.select("svg")
+    .append("text")
+    .text("NonMedical Emergencies")
+    .attr("x", 550)
+    .attr("y", 120)
+    .attr("font-family", "Times New Roman")
+    .attr("fill", "black")
+    .attr("font-size", "20px");
+
+d3.select("svg")
+.append("text")
+.text("Pecentage Change of Responses of Each Classification")
+.attr("x", 0)
+.attr("y", 40)
+.attr("font-family", "Times New Roman")
+.attr("fill", "black")
+.attr("font-size", "40px");
+
+// Foci
+var foci = {
+
+    "Center": { x: 450, y: 350, color: "#ffffcc" },
+  "FalseAlarm": { x: 250, y: 350, color: "#cc5efa" },//left
+  "MedicalFalseAlarm": { x: 650, y: 350, color: "#23cdc7" },//right
+  "NonStructuralFires": { x: 350, y: 523, color: "#eb494f" },//left up
+ "MedicalEmergencies": { x: 550, y: 523, color: "#cc6600" },//right up
+ "StructuralFires": { x: 350, y: 177, color: "#660033" },//left down
+ "NonMedicalEmergencies": { x: 550, y: 177, color: "#eb494f" }
+};
+
+// Create node objects
+var nodes = d3.range(0, num_nodes).map(function(o, i) {
+	return {
+		id: "node" + i,
+		x: foci.Center.x + Math.random(),
+		y: foci.Center.y + Math.random(),
+		radius: node_radius,
+		choice: "Center",
+	}
+});
+
+// Force-directed layout
+var force = d3.layout.force()
+	.nodes(nodes)
+	.size([width, height])
+	.gravity(0)
+	.charge(0)
+	.friction(.91)
+	.on("tick", tick)
+	.start();
+    
+// Draw circle for each node.
+var circle = svg.selectAll("circle")
+	.data(nodes)
+  .enter().append("circle")
+	.attr("id", function(d) { return d.id; })
+	.attr("class", "node")
+	.style("fill", function(d) { return foci[d.choice].color; });    
+
+// For smoother initial transition to settling spots.
+circle.transition()
+	.duration(900)
+	.delay(function(d,i) { return i * 5; })
+	.attrTween("r", function(d) {
+		var i = d3.interpolate(0, d.radius);
+		return function(t) { return d.radius = i(t); };
+	});
+
+
+// Run function periodically to make things move.
+
+var timetext = d3.select("svg")
+    .append("text")
+    .text("Month")
+    .attr("x", 380)
+    .attr("y", 390)
+    .attr("font-family", "Times New Roman")
+    .attr("fill", "black")
+    .attr("font-size", "60px");
+
+function updatenode(FalseAlarm, MedicalFalseAlarm, NonStructuralFires, MedicalEmergencies, StructuralFires, NonMedicalEmergencies,date) {
+   
+    for (var i = 0; i < nodes.length ; i++) {
+
+        if (0 <= i && i < nodes.length * FalseAlarm) {
+            nodes[i].cx = foci["FalseAlarm"].x;
+            nodes[i].cy = foci["FalseAlarm"].y;
+            nodes[i].choice = "FalseAlarm";
+        }
+        else if (nodes.length * FalseAlarm < i && i < nodes.length * MedicalFalseAlarm) {
+            // MedicalFalseAlarm
+            nodes[i].cx = foci["MedicalFalseAlarm"].x;
+            nodes[i].cy = foci["MedicalFalseAlarm"].y;
+            nodes[i].choice = "MedicalFalseAlarm";
+        }
+        else if (nodes.length * MedicalFalseAlarm <i && i < nodes.length * NonStructuralFires) {
+            // NonStructuralFires
+            nodes[i].cx = foci["NonStructuralFires"].x;
+            nodes[i].cy = foci["NonStructuralFires"].y;
+            nodes[i].choice = "NonStructuralFires";
+        }
+        else if (i < nodes.length * MedicalEmergencies) {
+            nodes[i].cx = foci["MedicalEmergencies"].x;
+            nodes[i].cy = foci["MedicalEmergencies"].y;
+            nodes[i].choice = "MedicalEmergencies";
+        }
+        else if ( i < nodes.length * StructuralFires) {
+            nodes[i].cx = foci["StructuralFires"].x;
+            nodes[i].cy = foci["StructuralFires"].y;
+            nodes[i].choice = "StructuralFires";
+        }
+        else {
+            nodes[i].cx = foci["NonMedicalEmergencies"].x;
+            nodes[i].cy = foci["NonMedicalEmergencies"].y;
+            nodes[i].choice = "NonMedicalEmergencies";
+        }
+    }
+    timetext.text(date)
+    // we also have to update the date
+    
+}
+
+
+
+var mydata = [[0.06499388, 0.07498164, 0.11157895, 0.56705018, 0.61471236,
+1.],
+[0.06744481, 0.07763104, 0.10838147, 0.54960094, 0.5959303,
+1.],
+[0.0589774, 0.06989914, 0.10479478, 0.56520684, 0.62173022,
+1.],
+[0.05210621, 0.0618441, 0.08893445, 0.51303265, 0.56892176,
+1.],
+[0.05175799, 0.06034505, 0.09060921, 0.5291515, 0.59276907,
+1.],
+[0.04607194, 0.05482726, 0.08696167, 0.48227638, 0.54555135,
+1.],
+[0.04254217, 0.04999014, 0.08054651, 0.48946927, 0.55031074,
+1.],
+[0.04176447, 0.04926481, 0.09912316, 0.49078646, 0.5501956,
+1.],
+[0.0484023, 0.05666008, 0.09390988, 0.4737905, 0.52596266,
+1.],
+[0.05430911, 0.06426622, 0.10240478, 0.55091642, 0.60740933,
+1.],
+[0.05961503, 0.06944444, 0.10452016, 0.54417533, 0.59254698,
+1.],
+[0.0615606, 0.07206816, 0.111837, 0.55169263, 0.5959386,
+1.],
+[0.06117657, 0.07121892, 0.11476372, 0.53197199, 0.5758732,
+1.],
+[0.05919463, 0.07080372, 0.10518539, 0.54921551, 0.59518281,
+1.],
+[0.05381405, 0.06452585, 0.09976814, 0.51926733, 0.56795734,
+1.],
+[0.04995897, 0.05964131, 0.08845387, 0.52758176, 0.58166686,
+1.],
+[0.04442804, 0.05252438, 0.08620821, 0.51516154, 0.57529852,
+1.],
+[0.03774878, 0.04517515, 0.07620593, 0.47960606, 0.54130201,
+1.],
+[0.03532394, 0.0418291, 0.08999593, 0.4905173, 0.54650468,
+1.],
+[0.03903746, 0.04575091, 0.08379379, 0.49394961, 0.55246436,
+1.],
+[0.05079822, 0.05744569, 0.08906046, 0.52928553, 0.58987176,
+1.],
+[0.05264017, 0.06009027, 0.09247376, 0.54141063, 0.59932568,
+1.],
+[0.05585086, 0.06443563, 0.09555539, 0.56035537, 0.61268748,
+1.],
+[0.05858344, 0.0676508, 0.10313814, 0.56818848, 0.61482061,
+1.],
+[0.06096994, 0.06932229, 0.10663092, 0.55433458, 0.59540953,
+1.],
+[0.0544018, 0.06234619, 0.0900652, 0.48642114, 0.52573291,
+1.],
+[0.05217004, 0.05945303, 0.08477011, 0.53007333, 0.5778587,
+1.],
+[0.04561917, 0.05398988, 0.08020531, 0.51181253, 0.56366776,
+1.],
+[0.04296996, 0.04916383, 0.07778466, 0.52105915, 0.58173325,
+1.],
+[0.04022507, 0.04731234, 0.07240512, 0.5059739, 0.56233688,
+1.],
+[0.0345855, 0.04044492, 0.07580008, 0.49534474, 0.55098443,
+1.],
+[0.03537403, 0.04124572, 0.06881962, 0.53656852, 0.59612008,
+1.],
+[0.04096839, 0.04736245, 0.07757954, 0.53302738, 0.59049657,
+1.],
+[0.04409013, 0.05107392, 0.09532218, 0.54492028, 0.60445381,
+1.],
+[0.0466065, 0.05513661, 0.07835332, 0.53959698, 0.5905798,
+1.],
+[0.05170486, 0.0597711, 0.08756276, 0.54343636, 0.58919266,
+1.],
+[0.05417628, 0.06198753, 0.09268438, 0.53420277, 0.57851221,
+1.],
+[0.05197328, 0.06076183, 0.08549296, 0.5449377, 0.58696167,
+1.],
+[0.04726769, 0.05459582, 0.07980358, 0.52885923, 0.57637875,
+1.],
+[0.04103833, 0.04681868, 0.07277691, 0.4585884, 0.50890515,
+1.],
+[0.03619354, 0.04131567, 0.07065148, 0.41832113, 0.47129916,
+1.],
+[0.03600854, 0.04265932, 0.06387731, 0.51421977, 0.57293528,
+1.],
+[0.0317946, 0.03671431, 0.06229195, 0.49571666, 0.54887899,
+1.],
+[0.03483595, 0.03994294, 0.08122682, 0.51640514, 0.57169757,
+1.],
+[0.03754468, 0.04429036, 0.07922814, 0.53831062, 0.60055363,
+1.],
+[0.04093551, 0.04685752, 0.08277161, 0.54665284, 0.6018612,
+1.],
+[0.04263037, 0.050056, 0.07768905, 0.54591713, 0.59821298,
+1.],
+[0.04743829, 0.05748238, 0.08235682, 0.55209488, 0.59576073,
+1.],
+[0.04699061, 0.05601229, 0.08333694, 0.53450738, 0.57576479,
+1.],
+[0.04602086, 0.05406123, 0.08021055, 0.56333301, 0.60862952,
+1.],
+[0.04313181, 0.05035472, 0.07749846, 0.55459593, 0.60631298,
+1.],
+[0.04090761, 0.04849612, 0.07633741, 0.55004146, 0.60182928,
+1.],
+[0.03681859, 0.04320184, 0.07256479, 0.51004724, 0.57267969,
+1.],
+[0.03310358, 0.03982312, 0.07959683, 0.52029447, 0.57807752,
+1.],
+[0.03079293, 0.03545725, 0.07735168, 0.44011313, 0.49146282,
+1.],
+[0.0334071, 0.0384129, 0.10591211, 0.50050058, 0.55443145,
+1.],
+[0.03802149, 0.04360262, 0.07350821, 0.47976838, 0.53602158,
+1.],
+[0.04002734, 0.04617996, 0.07897032, 0.50076613, 0.55338158,
+1.],
+[0.04073784, 0.04739315, 0.07316231, 0.51678795, 0.56731301,
+1.],
+[0.04395301, 0.05119423, 0.08002115, 0.53840142, 0.58274522,
+1.],
+[0.04505168, 0.05192776, 0.07961065, 0.52240305, 0.56450785,
+1.],
+[0.04269415, 0.04952613, 0.07551987, 0.54467243, 0.58941388,
+1.],
+[0.03802965, 0.04507996, 0.06893895, 0.54922377, 0.59537761,
+1.],
+[0.03739309, 0.04307278, 0.06218922, 0.52916087, 0.58248801,
+1.],
+[0.03614346, 0.04255713, 0.0643914, 0.50904165, 0.56836231,
+1.],
+[0.033165, 0.03927187, 0.05606577, 0.52669407, 0.58527305,
+1.],
+[0.02925864, 0.03371197, 0.06892991, 0.50066692, 0.5516544,
+1.],
+[0.02862547, 0.03274821, 0.08906409, 0.45926131, 0.50813924,
+1.],
+[0.03349262, 0.03816552, 0.08793927, 0.50678733, 0.55791432,
+1.],
+[0.03671835, 0.04178736, 0.07490629, 0.52357727, 0.57550264,
+1.],
+[0.03917712, 0.04565981, 0.081144, 0.55963874, 0.60690416,
+1.],
+[0.03877953, 0.04501595, 0.06823491, 0.55418774, 0.59544559,
+1.],
+[0.04020243, 0.04645741, 0.07229235, 0.55987718, 0.59634558,
+1.],
+[0.04154175, 0.04871358, 0.07477515, 0.57074834, 0.60948798,
+1.],
+[0.0387536, 0.04446422, 0.07179657, 0.55537854, 0.5975254,
+1.],
+[0.03465064, 0.0401498, 0.06084557, 0.51441805, 0.56233369,
+1.],
+[0.03700541, 0.04221682, 0.06505507, 0.52827958, 0.58315269,
+1.],
+[0.03447092, 0.04054141, 0.05896737, 0.53064201, 0.58675647,
+1.],
+[0.03185866, 0.03671777, 0.07069085, 0.50349693, 0.55271825,
+1.],
+[0.03108032, 0.03513699, 0.0606628, 0.47725145, 0.52457925,
+1.],
+[0.04011746, 0.04551539, 0.07468584, 0.55711016, 0.6051302,
+1.],
+[0.03668018, 0.0421069, 0.07174342, 0.54710169, 0.59915388,
+1.],
+[0.0411996, 0.04644889, 0.06980927, 0.55295299, 0.59906726,
+1.],
+[0.03912311, 0.04550843, 0.0740864, 0.56348926, 0.6041723,
+1.],
+[0.03974424, 0.04504095, 0.06819515, 0.54060496, 0.57771977,
+1.],
+[0.03784506, 0.04361377, 0.06724999, 0.54198769, 0.57741299,
+1.],
+[0.0357427, 0.04131245, 0.06388458, 0.55010679, 0.59116797,
+1.],
+[0.03355015, 0.03831478, 0.05593009, 0.51669599, 0.5619106,
+1.],
+[0.03499361, 0.03959132, 0.06268625, 0.5265645, 0.57801192,
+1.],
+[0.02852175, 0.03333866, 0.05646386, 0.51872801, 0.57075472,
+1.],
+[0.02803719, 0.03167703, 0.06888662, 0.53534807, 0.58243724,
+1.],
+[0.03004895, 0.03360892, 0.07888142, 0.54865681, 0.59505352,
+1.],
+[0.03209755, 0.03634733, 0.07480887, 0.53696664, 0.58681075,
+1.],
+[0.03849808, 0.04329145, 0.07032431, 0.55810338, 0.60603705,
+1.],
+[0.03695848, 0.04178089, 0.06403202, 0.56072036, 0.60574287,
+1.],
+[0.03953105, 0.04484062, 0.06718341, 0.55992636, 0.59802345,
+1.]]
+var date = ['2009.07',
+ '2009.08',
+ '2009.09',
+ '2009.1',
+ '2009.11',
+ '2009.12',
+ '2010.01',
+ '2010.02',
+ '2010.03',
+ '2010.04',
+ '2010.05',
+ '2010.06',
+ '2010.07',
+ '2010.08',
+ '2010.09',
+ '2010.1',
+ '2010.11',
+ '2010.12',
+ '2011.01',
+ '2011.02',
+ '2011.03',
+ '2011.04',
+ '2011.05',
+ '2011.06',
+ '2011.07',
+ '2011.08',
+ '2011.09',
+ '2011.1',
+ '2011.11',
+ '2011.12',
+ '2012.01',
+ '2012.02',
+ '2012.03',
+ '2012.04',
+ '2012.05',
+ '2012.06',
+ '2012.07',
+ '2012.08',
+ '2012.09',
+ '2012.1',
+ '2012.11',
+ '2012.12',
+ '2013.01',
+ '2013.02',
+ '2013.03',
+ '2013.04',
+ '2013.05',
+ '2013.06',
+ '2013.07',
+ '2013.08',
+ '2013.09',
+ '2013.1',
+ '2013.11',
+ '2013.12',
+ '2014.01',
+ '2014.02',
+ '2014.03',
+ '2014.04',
+ '2014.05',
+ '2014.06',
+ '2014.07',
+ '2014.08',
+ '2014.09',
+ '2014.1',
+ '2014.11',
+ '2014.12',
+ '2015.01',
+ '2015.02',
+ '2015.03',
+ '2015.04',
+ '2015.05',
+ '2015.06',
+ '2015.07',
+ '2015.08',
+ '2015.09',
+ '2015.1',
+ '2015.11',
+ '2015.12',
+ '2016.01',
+ '2016.02',
+ '2016.03',
+ '2016.04',
+ '2016.05',
+ '2016.06',
+ '2016.07',
+ '2016.08',
+ '2016.09',
+ '2016.1',
+ '2016.11',
+ '2016.12',
+ '2017.01',
+ '2017.02',
+ '2017.03',
+ '2017.04',
+ '2017.05',
+ '2017.06']
+function counter() {
+    var i = 0;
+    // This block will be executed 100 times.
+    setInterval(function () {
+        if (i == mydata.length) clearInterval(this);
+        else {
+            updatenode(mydata[i][0], mydata[i][1], mydata[i][2], mydata[i][3], mydata[i][4], mydata[i][5],date[i]);
+         
+            force.resume();
+            i++;
+        }
+    }, 1500);//change your time here 
+}
+counter();
+
+
+
+
+function tick(e) {
+  circle
+	.each(gravity(.051 * e.alpha))
+  	.each(collide(.5))
+  	.style("fill", function(d) { return foci[d.choice].color; })
+    .attr("cx", function(d) { return d.x; })
+    .attr("cy", function(d) { return d.y; });
+}
+
+
+// Move nodes toward cluster focus.
+function gravity(alpha) {
+  return function(d) {
+    d.y += (foci[d.choice].y - d.y) * alpha;
+    d.x += (foci[d.choice].x - d.x) * alpha;
+  };
+}
+
+
+
+// Resolve collisions between nodes.
+function collide(alpha) {
+  var quadtree = d3.geom.quadtree(nodes);
+  return function(d) {
+	  var r = d.radius + node_radius + Math.max(padding, cluster_padding),
+        nx1 = d.x - r,
+        nx2 = d.x + r,
+        ny1 = d.y - r,
+        ny2 = d.y + r;
+    quadtree.visit(function(quad, x1, y1, x2, y2) {
+      if (quad.point && (quad.point !== d)) {
+        var x = d.x - quad.point.x,
+            y = d.y - quad.point.y,
+            l = Math.sqrt(x * x + y * y),
+            r = d.radius + quad.point.radius + (d.choice === quad.point.choice ? padding : cluster_padding);
+        if (l < r) {
+          l = (l - r) / l * alpha;
+          d.x -= x *= l;
+          d.y -= y *= l;
+          quad.point.x += x;
+          quad.point.y += y;
+        }
+      }
+      return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
+    });
+  };
+}    
+
+
+</script>
+
+</body>
